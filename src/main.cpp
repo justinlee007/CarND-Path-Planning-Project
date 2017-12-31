@@ -18,10 +18,10 @@ double rad2deg(double x) { return x * 180 / pi(); }
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned, else the empty string "" will be returned.
-string hasData(string s) {
+string hasData(const string &s) {
   auto found_null = s.find("null");
-  auto b1 = s.find_first_of("[");
-  auto b2 = s.find_first_of("}");
+  auto b1 = s.find_first_of('[');
+  auto b2 = s.find_first_of('}');
   if (found_null != string::npos) {
     return "";
   } else if (b1 != string::npos && b2 != string::npos) {
