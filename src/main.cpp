@@ -1,5 +1,5 @@
 #include <fstream>
-#include <math.h>
+#include <cmath>
 #include <uWS/uWS.h>
 #include <thread>
 #include "Eigen-3.3/Eigen/Core"
@@ -83,7 +83,7 @@ vector<double> getFrenet(double x, double y, double theta, const vector<double> 
   int prev_wp;
   prev_wp = next_wp - 1;
   if (next_wp == 0) {
-    prev_wp = maps_x.size() - 1;
+    prev_wp = static_cast<int>(maps_x.size() - 1);
   }
 
   double n_x = maps_x[next_wp] - maps_x[prev_wp];
@@ -129,7 +129,7 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
     prev_wp++;
   }
 
-  int wp2 = (prev_wp + 1) % maps_x.size();
+  auto wp2 = static_cast<int>((prev_wp + 1) % maps_x.size());
 
   double heading = atan2((maps_y[wp2] - maps_y[prev_wp]), (maps_x[wp2] - maps_x[prev_wp]));
   // the x, y, s along the segment
@@ -201,7 +201,7 @@ int main() {
 
       auto s = hasData(data);
 
-      if (s != "") {
+      if (!s.empty()) {
         auto j = json::parse(s);
 
         string event = j[0].get<string>();
@@ -225,11 +225,10 @@ int main() {
           double end_path_d = j[1]["end_path_d"];
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
-          auto sensor_fusion = j[1]["sensor_fusion"];
+          vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
 
           int prev_size = previous_path_x.size();
 
-          /*
           if (prev_size > 0) {
             car_s = end_path_s;
           }
@@ -237,14 +236,14 @@ int main() {
           bool too_close = false;
 
           // Find ref_v to use
-          for (int i = 0; i < sensor_fusion.size(); i++) {
+          for (auto &i : sensor_fusion) {
             // Car is in my lane
-            float d = sensor_fusion[i][6];
+            double d = i[6];
             if (d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2)) {
-              double vx = sensor_fusion[i][3];
-              double vy = sensor_fusion[i][4];
+              double vx = i[3];
+              double vy = i[4];
               double check_speed = sqrt(vx * vx + vy * vy);
-              double check_car_s = sensor_fusion[i][5];
+              double check_car_s = i[5];
 
               check_car_s += ((double) prev_size * 0.02 * check_speed); // if using previous points can project s value out
 
@@ -262,7 +261,6 @@ int main() {
           } else if (ref_vel < 49.5) {
             ref_vel += 0.224;
           }
-           */
 
           // Create a list of widely spaced (x, y) waypoints, evenly spaced at 30m
           // Later we will interpolate these waypoints with a spline and fill it in with more points that control speed.
@@ -326,10 +324,10 @@ int main() {
           }
 
           // Create a spline
-          tk::spline s;
+          tk::spline spline;
 
           // Set (x, y) points to the spline
-          s.set_points(ptsx, ptsy);
+          spline.set_points(ptsx, ptsy);
 
           // Define the actual (x, y) points we will use for the planner
           vector<double> next_x_vals;
@@ -343,7 +341,7 @@ int main() {
 
           // Calculate how to break up spline points so that we travel at our desired reference velocity
           double target_x = 30.0;
-          double target_y = s(target_x);
+          double target_y = spline(target_x);
           double target_dist = sqrt((target_x) * (target_x) + (target_y) * (target_y));
 
           double x_add_on = 0;
@@ -352,7 +350,7 @@ int main() {
           for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
             double N = (target_dist / (0.02 * ref_vel / 2.24));
             double x_point = x_add_on + (target_x) / N;
-            double y_point = s(x_point);
+            double y_point = spline(x_point);
 
             x_add_on = x_point;
 
