@@ -4,7 +4,7 @@
 #include <thread>
 #include "Eigen-3.3/Eigen/Core"
 #include "json.hpp"
-#include "spline.h"
+#include "Spline/spline.h"
 
 using namespace std;
 
@@ -76,7 +76,7 @@ int nextWaypoint(double x, double y, double theta, const vector<double> &maps_x,
   return closest_waypoint;
 }
 
-// Transform from Cartesian x,y coordinates to Frenet s,d coordinates
+// Transform from Cartesian (x, y) coordinates to Frenet (s, d) coordinates
 vector<double> getFrenet(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
   int next_wp = nextWaypoint(x, y, theta, maps_x, maps_y);
 
@@ -121,7 +121,7 @@ vector<double> getFrenet(double x, double y, double theta, const vector<double> 
 
 }
 
-// Transform from Frenet s,d coordinates to Cartesian x,y
+// Transform from Frenet (s, d) coordinates to Cartesian (x, y)
 vector<double> getXY(double s, double d, const vector<double> &maps_s, const vector<double> &maps_x, const vector<double> &maps_y) {
   int prev_wp = -1;
 
