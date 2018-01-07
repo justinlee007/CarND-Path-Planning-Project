@@ -1,7 +1,7 @@
 #include "CoordinateUtils.h"
 #include <cmath>
 
-constexpr double CoordinateUtils::pi() {
+const double CoordinateUtils::pi() {
   return M_PI;
 }
 
@@ -44,7 +44,7 @@ int CoordinateUtils::closestWaypoint(double x, double y, const vector<double> &m
 }
 
 int CoordinateUtils::nextWaypoint(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
-  int closestWaypoint = closestWaypoint(x, y, maps_x, maps_y);
+  int closestWaypoint = CoordinateUtils::closestWaypoint(x, y, maps_x, maps_y);
 
   double map_x = maps_x[closestWaypoint];
   double map_y = maps_y[closestWaypoint];

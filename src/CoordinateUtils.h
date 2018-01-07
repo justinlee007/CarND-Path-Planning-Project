@@ -13,16 +13,16 @@ class CoordinateUtils {
  public:
 
   static const int START_LANE = 1; // starting lane = center lane
-  static const double SPEED_LIMIT = 49.5 * 0.44704; // max allowed speed [m/s]
-  static const double CONTROLLER_CYCLE_TIME = 0.02; // Cycle time of the vehicle controller between two trajectory points [s]
+  static constexpr double SPEED_LIMIT = 49.5 * 0.44704; // max allowed speed [m/s]
+  static constexpr double CONTROLLER_CYCLE_TIME = 0.02; // Cycle time of the vehicle controller between two trajectory points [s]
   static const int TOTAL_PREDICTION_POINTS = 50; // number of prediction points for e.g. the trajectory planner or vehicle model
-  static const double TOTAL_PREDICTION_TIME = CONTROLLER_CYCLE_TIME * (double) TOTAL_PREDICTION_POINTS;
+  static constexpr double TOTAL_PREDICTION_TIME = CONTROLLER_CYCLE_TIME * (double) TOTAL_PREDICTION_POINTS;
 
   /**
    * For converting back and forth between radians and degrees.
    * @return PI
    */
-  constexpr double pi();
+  const double pi();
 
   /**
    * Converts degrees to radians.
