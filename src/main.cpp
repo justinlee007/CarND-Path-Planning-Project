@@ -261,7 +261,7 @@ int main() {
         }
       } else {
         // Manual driving
-        std::string msg = "42[\"manual\",{}]";
+        string msg = "42[\"manual\",{}]";
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
@@ -269,7 +269,7 @@ int main() {
 
   // We don't need this since we're not using HTTP but if it's removed the program doesn't compile :-(
   h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data, size_t, size_t) {
-    const std::string s = "<h1>Hello world!</h1>";
+    const string s = "<h1>Hello world!</h1>";
     if (req.getUrl().valueLength == 1) {
       res->end(s.data(), s.length());
     } else {
@@ -279,19 +279,19 @@ int main() {
   });
 
   h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
-    std::cout << "Connected!!!" << std::endl;
+    cout << "Connected!!!" << endl;
   });
 
   h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
     ws.close();
-    std::cout << "Disconnected" << std::endl;
+    cout << "Disconnected" << endl;
   });
 
   int port = 4567;
   if (h.listen(port)) {
-    std::cout << "Listening to port " << port << std::endl;
+    cout << "Listening to port " << port << endl;
   } else {
-    std::cerr << "Failed to listen to port" << std::endl;
+    cerr << "Failed to listen to port" << endl;
     return -1;
   }
   h.run();

@@ -12,7 +12,7 @@ static const double DEFAULT_VEHICLE_WIDTH = 2.0; // default vehicle width [m]
 /**
  * Contains the actual vehicle dynamics and predicts the state based on a standard bicycle model.
  */
-class VehicleModel {
+class Vehicle {
  public:
   int id_; // vehicle ID
   double x_; // x position [m]
@@ -24,8 +24,8 @@ class VehicleModel {
   double v_; // velocity [m/s]
   double a_; // acceleration [m/s^2]
   double yaw_; // yaw angle (orientation) [rad]
-  double s_; // frenet s coordinate
-  double d_; // frenet d coordinate
+  double s_; // Frenet s coordinate
+  double d_; // Frenet d coordinate
   double width_; // vehicle width [m]
   bool updated_; // true if attributes are up-to date
 
@@ -44,13 +44,13 @@ class VehicleModel {
   vector<double> predicted_trajectory_v_; // predicted trajectory, velocity [m/s]
   vector<double> predicted_trajectory_a_; // predicted trajectory, acceleration [m/s^2]
   vector<double> predicted_trajectory_yaw_; // predicted trajectory, yaw angle (orientation) [rad]
-  vector<double> predicted_trajectory_s_; // predicted trajectory, frenet s coordinates
-  vector<double> predicted_trajectory_d_; // predicted trajectory, frenet d coordinates
+  vector<double> predicted_trajectory_s_; // predicted trajectory, Frenet s coordinates
+  vector<double> predicted_trajectory_d_; // predicted trajectory, Frenet d coordinates
 
   /**
    * Constructor initializes a default vehicle model.
    */
-  VehicleModel();
+  Vehicle();
 
   /**
    * Constructor initializes a vehicle with the standard set of parameters.
@@ -60,22 +60,22 @@ class VehicleModel {
    * @param y map y-position [m]
    * @param vx velocity in x direction [m/s]
    * @param vy velocity in y direction [m/s]
-   * @param s frenet s coordinate
-   * @param d frenet s coordinate
+   * @param s Frenet s coordinate
+   * @param d Frenet s coordinate
    */
-  VehicleModel(int id, double x, double y, double vx, double vy, double s, double d);
+  Vehicle(int id, double x, double y, double vx, double vy, double s, double d);
 
   /**
    * Constructor initializes a vehicle with the standard set of parameters.
    *
    * @param x map x-position [m]
    * @param y map y-position [m]
-   * @param s frenet s coordinate
-   * @param d frenet d coordinate
+   * @param s Frenet s coordinate
+   * @param d Frenet d coordinate
    * @param yaw yaw angle [rad]
    * @param velocity velocity [m/s]
    */
-  VehicleModel(double x, double y, double s, double d, double yaw, double velocity);
+  Vehicle(double x, double y, double s, double d, double yaw, double velocity);
 
   /**
    * Generate predictions for all vehicle trajectories for the given seconds into the future.

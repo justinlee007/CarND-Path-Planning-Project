@@ -35,13 +35,13 @@ class CoordinateUtils {
   double rad2deg(double x);
 
   /**
-   * Converts mph to mps.
+   * Converts mph to m/s.
    * @param velocity in mph
    */
   double mph2mps(double velocity);
 
   /**
-   * Converts mps to mph.
+   * Converts m/s to mph.
    * @param velocity
    */
   double mps2mph(double velocity);

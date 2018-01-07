@@ -2,7 +2,7 @@
 #include "CoordinateUtils.h"
 #include <cmath>
 
-VehicleModel::VehicleModel() {
+Vehicle::Vehicle() {
   id_ = 0;
   x_ = 0.0;
   y_ = 0.0;
@@ -22,7 +22,7 @@ VehicleModel::VehicleModel() {
   lane_ = -1; // unknown
 }
 
-VehicleModel::VehicleModel(int id, double x, double y, double vx, double vy, double s, double d) {
+Vehicle::Vehicle(int id, double x, double y, double vx, double vy, double s, double d) {
   id_ = id;
   x_ = x;
   y_ = y;
@@ -42,7 +42,7 @@ VehicleModel::VehicleModel(int id, double x, double y, double vx, double vy, dou
   lane_ = -1; // unknown
 }
 
-VehicleModel::VehicleModel(double x, double y, double s, double d, double yaw, double velocity) {
+Vehicle::Vehicle(double x, double y, double s, double d, double yaw, double velocity) {
   id_ = 0;
   x_ = x;
   y_ = y;
@@ -62,7 +62,7 @@ VehicleModel::VehicleModel(double x, double y, double s, double d, double yaw, d
   lane_ = -1; // unknown
 }
 
-void VehicleModel::generatePredictions(double prediction_time) {
+void Vehicle::generatePredictions(double prediction_time) {
 
   // clear previous prediction results
   predicted_trajectory_x_.clear();
