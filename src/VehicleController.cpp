@@ -1,5 +1,4 @@
 #include "VehicleController.h"
-#include "CoordinateUtils.h"
 
 VehicleController::VehicleController() {
   number_lanes_ = 0;

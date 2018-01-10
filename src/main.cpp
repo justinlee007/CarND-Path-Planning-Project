@@ -29,8 +29,6 @@ string hasData(const string &s) {
 int main() {
   uWS::Hub h;
 
-  static CoordinateUtils utils;
-
   // Load up map values for waypoint's x,y,s and d normalized normal vectors
   vector<double> map_waypoints_x;
   vector<double> map_waypoints_y;
@@ -152,7 +150,7 @@ int main() {
           // Either we will reference the starting points as where the car is or at the prevous paths end point
           double ref_x = car_x;
           double ref_y = car_y;
-          double ref_yaw = utils.deg2rad(car_yaw);
+          double ref_yaw = deg2rad(car_yaw);
 
           // If the previous size is almost empty, use the car as starting reference
           if (prev_size < 2) {
@@ -183,9 +181,9 @@ int main() {
           }
 
           // In Frenet add evenly 30m spaced points ahead of the starting reference
-          vector<double> next_wp0 = utils.getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp1 = utils.getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp2 = utils.getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+          vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 
           ptsx.push_back(next_wp0[0]);
           ptsx.push_back(next_wp1[0]);

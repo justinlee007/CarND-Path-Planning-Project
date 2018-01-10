@@ -1,31 +1,31 @@
 #include "CoordinateUtils.h"
 #include <cmath>
 
-const double CoordinateUtils::pi() {
+const double pi() {
   return M_PI;
 }
 
-double CoordinateUtils::deg2rad(double x) {
+double deg2rad(double x) {
   return x * pi() / 180;
 }
 
-double CoordinateUtils::rad2deg(double x) {
+double rad2deg(double x) {
   return x * 180 / pi();
 }
 
-double CoordinateUtils::mph2mps(double velocity) {
+double mph2mps(double velocity) {
   return velocity * 0.44704;
 }
 
-double CoordinateUtils::mps2mph(double velocity) {
+double mps2mph(double velocity) {
   return velocity * 2.23694;
 }
 
-double CoordinateUtils::distance(double x1, double y1, double x2, double y2) {
+double distance(double x1, double y1, double x2, double y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-int CoordinateUtils::closestWaypoint(double x, double y, const vector<double> &maps_x, const vector<double> &maps_y) {
+int closestWaypoint(double x, double y, const vector<double> &maps_x, const vector<double> &maps_y) {
   double closestLen = 100000; //large number
   int closestWaypoint = 0;
 
@@ -43,11 +43,11 @@ int CoordinateUtils::closestWaypoint(double x, double y, const vector<double> &m
   return closestWaypoint;
 }
 
-int CoordinateUtils::nextWaypoint(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
-  int closestWaypoint = CoordinateUtils::closestWaypoint(x, y, maps_x, maps_y);
+int nextWaypoint(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
+  int closest_waypoint = closestWaypoint(x, y, maps_x, maps_y);
 
-  double map_x = maps_x[closestWaypoint];
-  double map_y = maps_y[closestWaypoint];
+  double map_x = maps_x[closest_waypoint];
+  double map_y = maps_y[closest_waypoint];
 
   double heading = atan2((map_y - y), (map_x - x));
 
@@ -55,16 +55,16 @@ int CoordinateUtils::nextWaypoint(double x, double y, double theta, const vector
   angle = min(2 * pi() - angle, angle);
 
   if (angle > pi() / 4) {
-    closestWaypoint++;
-    if (closestWaypoint == maps_x.size()) {
-      closestWaypoint = 0;
+    closest_waypoint++;
+    if (closest_waypoint == maps_x.size()) {
+      closest_waypoint = 0;
     }
   }
 
-  return closestWaypoint;
+  return closest_waypoint;
 }
 
-vector<double> CoordinateUtils::getFrenet(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
+vector<double> getFrenet(double x, double y, double theta, const vector<double> &maps_x, const vector<double> &maps_y) {
   int next_wp = nextWaypoint(x, y, theta, maps_x, maps_y);
 
   int prev_wp;
@@ -107,7 +107,7 @@ vector<double> CoordinateUtils::getFrenet(double x, double y, double theta, cons
   return {frenet_s, frenet_d};
 }
 
-vector<double> CoordinateUtils::getXY(double s, double d, const vector<double> &maps_s, const vector<double> &maps_x, const vector<double> &maps_y) {
+vector<double> getXY(double s, double d, const vector<double> &maps_s, const vector<double> &maps_x, const vector<double> &maps_y) {
   int prev_wp = -1;
 
   while (s > maps_s[prev_wp + 1] && (prev_wp < (int) (maps_s.size() - 1))) {

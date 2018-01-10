@@ -78,8 +78,8 @@ void Vehicle::generatePredictions(double prediction_time) {
   predicted_trajectory_d_.clear();
 
   // predict vehicle trajectory until prediction time
-  for (int i = 0; i < (prediction_time / CoordinateUtils::CONTROLLER_CYCLE_TIME); ++i) {
-    double dt = i * CoordinateUtils::CONTROLLER_CYCLE_TIME;
+  for (int i = 0; i < (prediction_time / CONTROLLER_CYCLE_TIME); ++i) {
+    double dt = i * CONTROLLER_CYCLE_TIME;
     predicted_trajectory_x_.push_back(x_ + (vx_ * dt + 0.5 * ax_ * dt * dt));
     predicted_trajectory_y_.push_back(y_ + (vy_ * dt + 0.5 * ay_ * dt * dt));
 
