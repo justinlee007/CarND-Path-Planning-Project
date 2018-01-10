@@ -116,7 +116,7 @@ int main() {
           vehicle_controller.setEgoVehicle(car_x, car_y, car_s, car_d, car_yaw, car_speed);
 
           for (auto obj: sensor_fusion) {
-            auto *vehicle = new Vehicle(static_cast<int>(obj[0]), obj[1], obj[2], obj[3], obj[4], obj[5], obj[6]);
+            auto vehicle = new Vehicle(static_cast<int>(obj[0]), obj[1], obj[2], obj[3], obj[4], obj[5], obj[6]);
             vehicle_controller.updateVehicle(vehicle);
           }
 

@@ -22,7 +22,7 @@ double mps2mph(double velocity) {
 }
 
 double distance(double x1, double y1, double x2, double y2) {
-  return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+  return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2));
 }
 
 int closestWaypoint(double x, double y, const vector<double> &maps_x, const vector<double> &maps_y) {
@@ -79,7 +79,7 @@ vector<double> getFrenet(double x, double y, double theta, const vector<double> 
   double x_y = y - maps_y[prev_wp];
 
   // find the projection of x onto n
-  double proj_norm = (x_x * n_x + x_y * n_y) / (n_x * n_x + n_y * n_y);
+  double proj_norm = (x_x * n_x + x_y * n_y) / (pow(n_x, 2) + pow(n_y, 2));
   double proj_x = proj_norm * n_x;
   double proj_y = proj_norm * n_y;
 
@@ -107,7 +107,7 @@ vector<double> getFrenet(double x, double y, double theta, const vector<double> 
   return {frenet_s, frenet_d};
 }
 
-vector<double> getXY(double s, double d, const vector<double> &maps_s, const vector<double> &maps_x, const vector<double> &maps_y) {
+vector<double> getXY(double s, double d, vector<double> &maps_s, vector<double> &maps_x, vector<double> &maps_y) {
   int prev_wp = -1;
 
   while (s > maps_s[prev_wp + 1] && (prev_wp < (int) (maps_s.size() - 1))) {

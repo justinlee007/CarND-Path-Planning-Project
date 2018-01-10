@@ -119,7 +119,7 @@ Trajectory PathPlanner::planSplineTrajectory(PreviousTrajectory &previous_trajec
   // calculate how to break up spline points so that we travel at our desired reference velocity
   double target_x = 30.0;
   double target_y = spline(target_x);
-  double target_dist = sqrt(target_x * target_x + target_y * target_y);
+  double target_dist = sqrt(pow(target_x, 2) + pow(target_y, 2));
   double x_add_on = 0.0;
 
   // fill up the rest of our path planner after filling it with previous points
