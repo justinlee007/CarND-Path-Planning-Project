@@ -33,8 +33,8 @@ Vehicle::Vehicle(int id, double x, double y, double vx, double vy, double s, dou
 
   ax_ = 0.0;
   ay_ = 0.0;
-  v_ = sqrt(vx_ * vx_ + vy_ * vy_);
-  a_ = sqrt(ax_ * ax_ + ay_ * ay_);
+  v_ = sqrt(pow(vx_, 2) + pow(vy_, 2));
+  a_ = sqrt(pow(ax_, 2) + pow(ay_, 2));
   yaw_ = vx_ == 0 ? atan(vy_ / vx_) : 0.0f;
   width_ = DEFAULT_VEHICLE_WIDTH;
   updated_ = true;
@@ -54,7 +54,7 @@ Vehicle::Vehicle(double x, double y, double s, double d, double yaw, double velo
   ax_ = 0.0;
   ay_ = 0.0;
   v_ = velocity;
-  a_ = sqrt(ax_ * ax_ + ay_ * ay_);
+  a_ = sqrt(pow(ax_, 2) + pow(ay_, 2));
   yaw_ = yaw;
   width_ = DEFAULT_VEHICLE_WIDTH;
   updated_ = true;
@@ -80,8 +80,8 @@ void Vehicle::generatePredictions(double prediction_time) {
   // predict vehicle trajectory until prediction time
   for (int i = 0; i < (prediction_time / CONTROLLER_CYCLE_TIME); ++i) {
     double dt = i * CONTROLLER_CYCLE_TIME;
-    predicted_trajectory_x_.push_back(x_ + (vx_ * dt + 0.5 * ax_ * dt * dt));
-    predicted_trajectory_y_.push_back(y_ + (vy_ * dt + 0.5 * ay_ * dt * dt));
+    predicted_trajectory_x_.push_back(x_ + (vx_ * dt + 0.5 * ax_ * pow(dt, 2)));
+    predicted_trajectory_y_.push_back(y_ + (vy_ * dt + 0.5 * ay_ * pow(dt, 2)));
 
     predicted_trajectory_vx_.push_back(vx_ + ax_ * prediction_time);
     predicted_trajectory_vy_.push_back(vy_ + ay_ * prediction_time);
@@ -90,7 +90,7 @@ void Vehicle::generatePredictions(double prediction_time) {
 
   // vehicle state at prediction time
   double dt = prediction_time;
-  predicted_x_ = x_ + (vx_ * dt + 0.5 * ax_ * dt * dt);
-  predicted_y_ = y_ + (vy_ * dt + 0.5 * ay_ * dt * dt);
+  predicted_x_ = x_ + (vx_ * dt + 0.5 * ax_ * pow(dt, 2));
+  predicted_y_ = y_ + (vy_ * dt + 0.5 * ay_ * pow(dt, 2));
   predicted_v_ = v_ + a_ * prediction_time;
 }

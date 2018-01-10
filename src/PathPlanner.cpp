@@ -3,7 +3,7 @@
 
 PathPlanner::PathPlanner(VehicleController *vehicle_controller, LaneStateController *lane_state_controller, const int start_lane) {
   vehicle_controller_ = vehicle_controller;
-  lane_state_controller = lane_state_controller;
+  lane_state_controller_ = lane_state_controller;
   current_lane_ = start_lane;
   target_lane_ = start_lane;
   target_velocity_ = vehicle_controller_->getSpeedLimitForLane(start_lane);
@@ -25,7 +25,7 @@ Trajectory PathPlanner::planSplineTrajectory(PreviousTrajectory &previous_trajec
   target_velocity_ = lane_state_controller_->target_velocity_;
   double time_gap_threshold;
 
-  if (lane_state_controller_->current_state_ == LaneState::PREPARE_LANE_CHANGE_LEFT || lane_state_controller_->current_state_ == LaneState::PREPARE_LANE_CHANGE_RIGHT) {
+  if ((lane_state_controller_->current_state_ == LaneState::PREPARE_LANE_CHANGE_LEFT) || (lane_state_controller_->current_state_ == LaneState::PREPARE_LANE_CHANGE_RIGHT)) {
     target_lane_ = current_lane_;
     time_gap_threshold = MIN_TIME_GAP_LANE_CHANGE;
     time_gap_ = min(lane_state_controller_->time_gap_current_lane_front_, lane_state_controller_->time_gap_target_lane_front_);
@@ -104,8 +104,8 @@ Trajectory PathPlanner::planSplineTrajectory(PreviousTrajectory &previous_trajec
   }
 
   // create a spline to smooth the trajectory
-  tk::spline s;
-  s.set_points(points_x, points_y);
+  tk::spline spline;
+  spline.set_points(points_x, points_y);
 
   // define the actual (x, y) points we will use for the planner
   Trajectory trajectory = Trajectory();
@@ -118,7 +118,7 @@ Trajectory PathPlanner::planSplineTrajectory(PreviousTrajectory &previous_trajec
 
   // calculate how to break up spline points so that we travel at our desired reference velocity
   double target_x = 30.0;
-  double target_y = s(target_x);
+  double target_y = spline(target_x);
   double target_dist = sqrt(target_x * target_x + target_y * target_y);
   double x_add_on = 0.0;
 
@@ -136,7 +136,7 @@ Trajectory PathPlanner::planSplineTrajectory(PreviousTrajectory &previous_trajec
     // Calculate points along new path
     double N = (target_dist / (CONTROLLER_CYCLE_TIME * reference_velocity_));
     double x_point = x_add_on + (target_x) / N;
-    double y_point = s(x_point);
+    double y_point = spline(x_point);
 
     x_add_on = x_point;
 

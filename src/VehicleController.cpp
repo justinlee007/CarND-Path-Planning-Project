@@ -1,3 +1,4 @@
+#include "Vehicle.h"
 #include "VehicleController.h"
 
 VehicleController::VehicleController() {

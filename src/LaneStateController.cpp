@@ -30,19 +30,24 @@ LaneState LaneStateController::update() {
 
   calculateSafetyMeasures();
 
+  LaneState new_state = LaneState::INITIALIZATION;
   switch (current_state_) {
-    case LaneState::KEEP_LANE:current_state_ = stateKeepLane();
+    case LaneState::KEEP_LANE:new_state = stateKeepLane();
       break;
-    case LaneState::PREPARE_LANE_CHANGE_LEFT:current_state_ = statePrepareLaneChangeLeft();
+    case LaneState::PREPARE_LANE_CHANGE_LEFT:new_state = statePrepareLaneChangeLeft();
       break;
-    case LaneState::LANE_CHANGE_LEFT:current_state_ = stateLaneChangeLeft();
+    case LaneState::LANE_CHANGE_LEFT:new_state = stateLaneChangeLeft();
       break;
-    case LaneState::PREPARE_LANE_CHANGE_RIGHT:current_state_ = statePrepareLaneChangeRight();
+    case LaneState::PREPARE_LANE_CHANGE_RIGHT:new_state = statePrepareLaneChangeRight();
       break;
-    case LaneState::LANE_CHANGE_RIGHT:current_state_ = stateLaneChangeRight();
+    case LaneState::LANE_CHANGE_RIGHT:new_state = stateLaneChangeRight();
       break;
     default:cout << "Error: Invalid behavior state." << endl;
       break;
+  }
+  if (new_state != current_state_) {
+    printf("Lane state change: current=%s, new=%s", getStateAsString(current_state_).c_str(), getStateAsString(new_state).c_str());
+    current_state_ = new_state;
   }
 
   return current_state_;
@@ -59,24 +64,13 @@ string LaneStateController::getStateAsString(LaneState state) const {
   }
 }
 
-int LaneStateController::getTargetLane() {
-  switch (current_state_) {
-    case LaneState::INITIALIZATION:
-    case LaneState::KEEP_LANE:return current_lane_;
-    case LaneState::PREPARE_LANE_CHANGE_LEFT:
-    case LaneState::LANE_CHANGE_LEFT:return max(current_lane_ - 1, 0);
-    case LaneState::PREPARE_LANE_CHANGE_RIGHT:
-    case LaneState::LANE_CHANGE_RIGHT:return min(current_lane_ + 1, 2);
-  }
-}
-
 LaneState LaneStateController::stateKeepLane() {
 
   double speed_limit_current_lane = vehicle_controller_->getSpeedLimitForCurrentLane();
   double host_velocity = vehicle_controller_->ego_vehicle_.v_;
 
   // set target velocity
-  if (time_gap_current_lane_front_ <= LOWER_TIME_GAP) {
+  if (next_vehicle_current_lane_ && (time_gap_current_lane_front_ <= LOWER_TIME_GAP)) {
     target_velocity_ = next_vehicle_current_lane_->v_;
   } else if (time_gap_current_lane_front_ >= UPPER_TIME_GAP) {
     target_velocity_ = speed_limit_current_lane;

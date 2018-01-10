@@ -1,11 +1,11 @@
 #include <fstream>
-#include <cmath>
 #include <uWS/uWS.h>
-#include <thread>
 #include "Eigen-3.3/Eigen/Core"
 #include "json.hpp"
-#include "Spline/spline.h"
 #include "CoordinateUtils.h"
+#include "VehicleController.h"
+#include "LaneStateController.h"
+#include "PathPlanner.h"
 
 using namespace std;
 
@@ -63,14 +63,18 @@ int main() {
     map_waypoints_dy.push_back(d_y);
   }
 
-  // Start in lane 1
-  static int lane = 1;
+  // Setup the vehicle and lane state controllers and path planner
+  static VehicleController vehicle_controller = VehicleController();
 
-  // Have a reference velocity to target
-  static double ref_vel = 0; // mph
+  // set speed limits for all lanes
+  vector<double> limits = {SPEED_LIMIT, SPEED_LIMIT, SPEED_LIMIT};
+  vehicle_controller.setSpeedLimitsForLanes(limits);
 
-  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
-                                                                                                           uWS::OpCode opCode) {
+  static LaneStateController lane_state_controller = LaneStateController(&vehicle_controller, SPEED_LIMIT, START_LANE);
+  static PathPlanner path_planner = PathPlanner(&vehicle_controller, &lane_state_controller, START_LANE);
+
+  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy]
+                  (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -90,12 +94,12 @@ int main() {
           // j[1] is the data JSON object
 
           // Main car's localization Data
-          double car_x = j[1]["x"];
-          double car_y = j[1]["y"];
-          double car_s = j[1]["s"];
-          double car_d = j[1]["d"];
-          double car_yaw = j[1]["yaw"];
-          double car_speed = j[1]["speed"];
+          double car_x = j[1]["x"];                             // m
+          double car_y = j[1]["y"];                             // m
+          double car_s = j[1]["s"];                             // m
+          double car_d = j[1]["d"];                             // m
+          double car_yaw = deg2rad(double(j[1]["yaw"]));        // rad
+          double car_speed = double(j[1]["speed"]) * 0.44704;   // m/s
 
           // Previous path data given to the Planner
           auto previous_path_x = j[1]["previous_path_x"];
@@ -105,151 +109,35 @@ int main() {
           double end_path_d = j[1]["end_path_d"];
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
-          vector<vector<double>> sensor_fusion = j[1]["sensor_fusion"];
+          auto sensor_fusion = j[1]["sensor_fusion"];
 
-          int prev_size = previous_path_x.size();
+          // Update vehicle controller
+          vehicle_controller.resetUpdateFlagForAllVehicles();
+          vehicle_controller.setEgoVehicle(car_x, car_y, car_s, car_d, car_yaw, car_speed);
 
-          if (prev_size > 0) {
-            car_s = end_path_s;
+          for (auto obj: sensor_fusion) {
+            auto *vehicle = new Vehicle(static_cast<int>(obj[0]), obj[1], obj[2], obj[3], obj[4], obj[5], obj[6]);
+            vehicle_controller.updateVehicle(vehicle);
           }
 
-          bool too_close = false;
+          vehicle_controller.update(TOTAL_PREDICTION_TIME);
 
-          // Find ref_v to use
-          for (auto &i : sensor_fusion) {
-            // Car is in my lane
-            double d = i[6];
-            if (d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2)) {
-              double vx = i[3];
-              double vy = i[4];
-              double check_speed = sqrt(vx * vx + vy * vy);
-              double check_car_s = i[5];
+          // Update lane state controller
+          lane_state_controller.update();
 
-              check_car_s += ((double) prev_size * 0.02 * check_speed); // if using previous points can project s value out
+          // Update path planner
+          PreviousTrajectory previous_trajectory;
+          previous_trajectory.points_x = previous_path_x;
+          previous_trajectory.points_y = previous_path_y;
+          previous_trajectory.end_point_s = end_path_s;
 
-              // Check s values greater than mine and s gap
-              if ((check_car_s > car_s) && ((check_car_s - car_s) < 30)) {
-                // Do some logic here, lower reference velocity so we don't crash into the car in front of us, could also flag to try to change lanes.
-                too_close = true;
-              }
-            }
-          }
+          path_planner.setMapWaypoints(map_waypoints_x, map_waypoints_y, map_waypoints_s);
 
-          if (too_close) {
-            ref_vel -= 0.224;
-          } else if (ref_vel < 49.5) {
-            ref_vel += 0.224;
-          }
-
-          // Create a list of widely spaced (x, y) waypoints, evenly spaced at 30m
-          // Later we will interpolate these waypoints with a spline and fill it in with more points that control speed.
-          vector<double> ptsx;
-          vector<double> ptsy;
-
-          // Reference x, y, yaw states
-          // Either we will reference the starting points as where the car is or at the prevous paths end point
-          double ref_x = car_x;
-          double ref_y = car_y;
-          double ref_yaw = deg2rad(car_yaw);
-
-          // If the previous size is almost empty, use the car as starting reference
-          if (prev_size < 2) {
-            // Use two points that make the path tangent to the car
-            double prev_car_x = car_x - cos(car_yaw);
-            double prev_car_y = car_y - sin(car_yaw);
-
-            ptsx.push_back(prev_car_x);
-            ptsx.push_back(car_x);
-
-            ptsy.push_back(prev_car_y);
-            ptsy.push_back(car_y);
-          } else { // Use the previous path's end point as starting reference
-            // Redefine reference state as previous path end point
-            ref_x = previous_path_x[prev_size - 1];
-            ref_y = previous_path_y[prev_size - 1];
-
-            double ref_x_prev = previous_path_x[prev_size - 2];
-            double ref_y_prev = previous_path_y[prev_size - 2];
-            ref_yaw = atan2(ref_y - ref_y_prev, ref_x - ref_x_prev);
-
-            // Use two points that make the path tangent to the previous path's end point
-            ptsx.push_back(ref_x_prev);
-            ptsx.push_back(ref_x);
-
-            ptsy.push_back(ref_y_prev);
-            ptsy.push_back(ref_y);
-          }
-
-          // In Frenet add evenly 30m spaced points ahead of the starting reference
-          vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-          vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
-
-          ptsx.push_back(next_wp0[0]);
-          ptsx.push_back(next_wp1[0]);
-          ptsx.push_back(next_wp2[0]);
-
-          ptsy.push_back(next_wp0[1]);
-          ptsy.push_back(next_wp1[1]);
-          ptsy.push_back(next_wp2[1]);
-
-          for (int i = 0; i < ptsx.size(); i++) {
-            // Shift car reference angle to 0 degrees
-            double shift_x = ptsx[i] - ref_x;
-            double shift_y = ptsy[i] - ref_y;
-
-            ptsx[i] = (shift_x * cos(0 - ref_yaw) - shift_y * sin(0 - ref_yaw));
-            ptsy[i] = (shift_x * sin(0 - ref_yaw) + shift_y * cos(0 - ref_yaw));
-          }
-
-          // Create a spline
-          tk::spline spline;
-
-          // Set (x, y) points to the spline
-          spline.set_points(ptsx, ptsy);
-
-          // Define the actual (x, y) points we will use for the planner
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
-
-          // Start with all of the previous path points from last time
-          for (int i = 0; i < previous_path_x.size(); i++) {
-            next_x_vals.push_back(previous_path_x[i]);
-            next_y_vals.push_back(previous_path_y[i]);
-          }
-
-          // Calculate how to break up spline points so that we travel at our desired reference velocity
-          double target_x = 30.0;
-          double target_y = spline(target_x);
-          double target_dist = sqrt((target_x) * (target_x) + (target_y) * (target_y));
-
-          double x_add_on = 0;
-
-          // Fill up the rest of out path planner after filling it with previous points, here we will always output 50 points
-          for (int i = 1; i <= 50 - previous_path_x.size(); i++) {
-            double N = (target_dist / (0.02 * ref_vel / 2.24));
-            double x_point = x_add_on + (target_x) / N;
-            double y_point = spline(x_point);
-
-            x_add_on = x_point;
-
-            double x_ref = x_point;
-            double y_ref = y_point;
-
-            // Rotate back to normal after rotating it earlier
-            x_point = (x_ref * cos(ref_yaw) - y_ref * sin(ref_yaw));
-            y_point = (x_ref * sin(ref_yaw) + y_ref * cos(ref_yaw));
-
-            x_point += ref_x;
-            y_point += ref_y;
-
-            next_x_vals.push_back(x_point);
-            next_y_vals.push_back(y_point);
-          }
+          Trajectory trajectory = path_planner.planSplineTrajectory(previous_trajectory);
 
           json msgJson;
-          msgJson["next_x"] = next_x_vals;
-          msgJson["next_y"] = next_y_vals;
+          msgJson["next_x"] = trajectory.points_x;
+          msgJson["next_y"] = trajectory.points_y;
 
           auto msg = "42[\"control\"," + msgJson.dump() + "]";
 
