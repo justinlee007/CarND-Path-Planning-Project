@@ -8,6 +8,10 @@
 #include "Vehicle.h"
 #include "Eigen-3.3/Eigen/Core"
 
+static constexpr double LANE_WIDTH = 4.0; // default lane width
+static constexpr double MAX_DISTANCE_FOR_AVE_VELOCITY = 100; // The average velocity is calculated for vehicles in range of x m ahead
+static constexpr double MAX_DISTANCE_LANE_OCCUPANCY = 100; // The average velocity is calculated for vehicles in range of x m ahead
+
 /**
  * Holds a list of all detected vehicles and provides methods to find the nearest vehicle in the ego or adjacent lane.
  */
@@ -18,10 +22,6 @@ class VehicleController {
   int number_lanes_; // number of lanes
   Eigen::VectorXd average_lane_velocities_; // average velocity per lane [m/s]
   Eigen::VectorXi lane_occupancy_; // number of vehicles driving ahead per lane
-
-  static constexpr double LANE_WIDTH = 4.0; // default lane width
-  static constexpr double MAX_DISTANCE_FOR_AVE_VELOCITY = 100; // The average velocity is calculated for vehicles in range of x m ahead
-  static constexpr double MAX_DISTANCE_LANE_OCCUPANCY = 100; // The average velocity is calculated for vehicles in range of x m ahead
 
   VehicleController();
 
