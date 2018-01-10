@@ -74,14 +74,6 @@ void VehicleController::removeOutdatedVehicles() {
   }
 }
 
-void VehicleController::removeAllVehicles() {
-  for (auto &obj: vehicle_id_map_) {
-    delete obj.second;
-  }
-
-  vehicle_id_map_.clear();
-}
-
 vector<Vehicle *> VehicleController::getAllVehiclesForLane(int lane) {
   vector<Vehicle *> vehicles;
 
