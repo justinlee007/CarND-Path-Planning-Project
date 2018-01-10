@@ -85,19 +85,19 @@ class LaneStateController {
   int getTargetLane();
 
  private:
-  static const double LOWER_TIME_GAP = 1.5; // min allowed time gap to vehicle ahead [s]
-  static const double UPPER_TIME_GAP = 3.5; // time gap [s] to drive with speed limit
-  static const double MIN_TIME_GAP_INIT_LANE_CHANGE = 3.0; // min allowed time gap to initiate a lane change [s]
-  static const double MIN_TIME_GAP_LANE_CHANGE = 1.0; // min required time gap to vehicle in target lane [s]
-  static const double MIN_DISTANCE_FRONT_LANE_CHANGE = 10.0; // min required distance to vehicle ahead in target lane [m]
-  static const double MIN_DISTANCE_REAR_LANE_CHANGE = 10.0; // min required distance to vehicle behind in target lane [m]
-  static const double MIN_TTC_FRONT_LANE_CHANGE = 6.0; // min required time-to-collision to vehicle ahead in target lane [s]
-  static const double MIN_TTC_REAR_LANE_CHANGE = 6.0; // min required time-to-collision to vehicle behind in target lane [s]
-  static const double FASTEST_LANE_FACTOR = 0.08; // the fastest lane velocity need to  be x% faster than the current [%]
+  static constexpr double LOWER_TIME_GAP = 1.5; // min allowed time gap to vehicle ahead [s]
+  static constexpr double UPPER_TIME_GAP = 3.5; // time gap [s] to drive with speed limit
+  static constexpr double MIN_TIME_GAP_INIT_LANE_CHANGE = 3.0; // min allowed time gap to initiate a lane change [s]
+  static constexpr double MIN_TIME_GAP_LANE_CHANGE = 1.0; // min required time gap to vehicle in target lane [s]
+  static constexpr double MIN_DISTANCE_FRONT_LANE_CHANGE = 10.0; // min required distance to vehicle ahead in target lane [m]
+  static constexpr double MIN_DISTANCE_REAR_LANE_CHANGE = 10.0; // min required distance to vehicle behind in target lane [m]
+  static constexpr double MIN_TTC_FRONT_LANE_CHANGE = 6.0; // min required time-to-collision to vehicle ahead in target lane [s]
+  static constexpr double MIN_TTC_REAR_LANE_CHANGE = 6.0; // min required time-to-collision to vehicle behind in target lane [s]
+  static constexpr double FASTEST_LANE_FACTOR = 0.08; // the fastest lane velocity need to  be x% faster than the current [%]
 
-  static const double DEFAULT_TIME_GAP = 9999.9; // default resp. max time gap [s]
-  static const double DEFAULT_TIME_TO_COLLISION = 9999.9; // default resp. max time-to-collision [s]
-  static const double DEFAULT_DISTANCE = 9999.9; // default resp. max distance to vehicles [m]
+  static constexpr double DEFAULT_TIME_GAP = 9999.9; // default resp. max time gap [s]
+  static constexpr double DEFAULT_TIME_TO_COLLISION = 9999.9; // default resp. max time-to-collision [s]
+  static constexpr double DEFAULT_DISTANCE = 9999.9; // default resp. max distance to vehicles [m]
 
   /**
    * Calculates distance between two vehicles.
