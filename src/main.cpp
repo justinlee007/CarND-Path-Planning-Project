@@ -64,16 +64,16 @@ int main() {
   }
 
   // Setup the vehicle and lane state controllers and path planner
-  static VehicleController vehicle_controller = VehicleController();
+  VehicleController vehicle_controller = VehicleController();
 
   // set speed limits for all lanes
   vector<double> limits = {SPEED_LIMIT, SPEED_LIMIT, SPEED_LIMIT};
   vehicle_controller.setSpeedLimitsForLanes(limits);
 
-  static LaneStateController lane_state_controller = LaneStateController(&vehicle_controller, SPEED_LIMIT, START_LANE);
-  static PathPlanner path_planner = PathPlanner(&vehicle_controller, &lane_state_controller, START_LANE);
+  LaneStateController lane_state_controller = LaneStateController(&vehicle_controller, SPEED_LIMIT, START_LANE);
+  PathPlanner path_planner = PathPlanner(&vehicle_controller, &lane_state_controller, START_LANE);
 
-  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy]
+  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy, &vehicle_controller, &lane_state_controller, &path_planner]
                   (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
 
     // "42" at the start of the message means there's a websocket message event.
@@ -81,7 +81,7 @@ int main() {
     // The 2 signifies a websocket event
     //auto sdata = string(data).substr(0, length);
     //cout << sdata << endl;
-    if (length && length > 2 && data[0] == '4' && data[1] == '2') {
+    if (length > 2 && data[0] == '4' && data[1] == '2') {
 
       auto s = hasData(data);
 
@@ -94,12 +94,12 @@ int main() {
           // j[1] is the data JSON object
 
           // Main car's localization Data
-          double car_x = j[1]["x"];                             // m
-          double car_y = j[1]["y"];                             // m
-          double car_s = j[1]["s"];                             // m
-          double car_d = j[1]["d"];                             // m
-          double car_yaw = deg2rad(double(j[1]["yaw"]));        // rad
-          double car_speed = double(j[1]["speed"]) * 0.44704;   // m/s
+          double car_x = j[1]["x"]; // m
+          double car_y = j[1]["y"]; // m
+          double car_s = j[1]["s"]; // m
+          double car_d = j[1]["d"]; // m
+          double car_yaw = deg2rad(double(j[1]["yaw"])); // rad
+          double car_speed = mph2mps(double(j[1]["speed"])); // m/s
 
           // Previous path data given to the Planner
           auto previous_path_x = j[1]["previous_path_x"];
