@@ -19,15 +19,6 @@ enum class LaneState {
   LANE_CHANGE_RIGHT
 };
 
-// Sensor fusion index constants [id, x, y, vx, vy, s, d]
-static const int SENSOR_FUSION_INDEX_ID = 0;
-static const int SENSOR_FUSION_INDEX_X = 1;
-static const int SENSOR_FUSION_INDEX_Y = 2;
-static const int SENSOR_FUSION_INDEX_VX = 3;
-static const int SENSOR_FUSION_INDEX_VY = 4;
-static const int SENSOR_FUSION_INDEX_S = 5;
-static const int SENSOR_FUSION_INDEX_D = 6;
-
 /**
  * Uses data from VehicleController The lane state controller suggests the next lane state.  It does not consider path planning.
  */
@@ -76,13 +67,6 @@ class LaneStateController {
    * @return the behavior state as a user-readable string
    */
   string getStateAsString(LaneState state) const;
-
-  /**
-   * Returns the target lane ID for the current lane state.
-   *
-   * @return the target lane [0=left, 1=center, 2=right]
-   */
-  int getTargetLane();
 
  private:
   static constexpr double LOWER_TIME_GAP = 1.5; // min allowed time gap to vehicle ahead [s]

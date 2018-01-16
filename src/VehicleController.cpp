@@ -158,8 +158,7 @@ int VehicleController::getReachableFastestLane(double factor) {
 
 int VehicleController::getDrivingLaneForVehicle(const Vehicle *vehicle) {
   for (int lane = 0; lane < number_lanes_; ++lane) {
-    if (vehicle->d_<(2 + LANE_WIDTH * lane + (LANE_WIDTH / 2.0)) &&
-        vehicle->d_>(2 + LANE_WIDTH * lane - (LANE_WIDTH / 2.0))) {
+    if ((vehicle->d_ < (2 + LANE_WIDTH * lane + (LANE_WIDTH / 2.0))) && (vehicle->d_ > (2 + LANE_WIDTH * lane - (LANE_WIDTH / 2.0)))) {
       return lane;
     }
   }
