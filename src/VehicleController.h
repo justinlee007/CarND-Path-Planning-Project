@@ -89,6 +89,11 @@ class VehicleController {
   void removeOutdatedVehicles();
 
   /**
+   * Removes all vehicles.
+   */
+  void removeAllVehicles();
+
+  /**
    * Gets all vehicles driving in requested lane.
    *
    * @param lane id [0=left, 1=center, 2=right]

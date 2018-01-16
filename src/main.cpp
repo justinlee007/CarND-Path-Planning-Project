@@ -144,6 +144,8 @@ int main() {
           //this_thread::sleep_for(chrono::milliseconds(1000));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
+          // clean up
+          vehicle_controller.removeAllVehicles();
         }
       } else {
         // Manual driving
