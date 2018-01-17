@@ -215,41 +215,22 @@ void LaneStateController::calculateSafetyMeasures() {
 
   // Calculate time gap for current lane
   next_vehicle_current_lane_ = vehicle_controller_->getNextVehicleDrivingAhead(current_lane_);
+  Vehicle ego = vehicle_controller_->ego_vehicle_;
 
   if (next_vehicle_current_lane_) {
     // found vehicle driving ahead, check time_gap
-    d_current_lane_front_ = calculateDistance(vehicle_controller_->ego_vehicle_.x_,
-                                              vehicle_controller_->ego_vehicle_.y_,
-                                              next_vehicle_current_lane_->x_,
-                                              next_vehicle_current_lane_->y_);
-
-    d_predicted_current_lane_front_ = calculateDistance(vehicle_controller_->ego_vehicle_.predicted_x_,
-                                                        vehicle_controller_->ego_vehicle_.predicted_y_,
-                                                        next_vehicle_current_lane_->predicted_x_,
-                                                        next_vehicle_current_lane_->predicted_y_);
-
-    time_gap_current_lane_front_ = calculateTimeGap(vehicle_controller_->ego_vehicle_.v_,
-                                                    vehicle_controller_->ego_vehicle_.x_,
-                                                    vehicle_controller_->ego_vehicle_.y_,
-                                                    next_vehicle_current_lane_->x_,
-                                                    next_vehicle_current_lane_->y_);
-
-    time_gap_predicted_current_lane_front_ = calculateTimeGap(vehicle_controller_->ego_vehicle_.predicted_v_,
-                                                              vehicle_controller_->ego_vehicle_.predicted_x_,
-                                                              vehicle_controller_->ego_vehicle_.predicted_y_,
+    d_current_lane_front_ = calculateDistance(ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+    d_predicted_current_lane_front_ = calculateDistance(ego.predicted_x_, ego.predicted_y_, next_vehicle_current_lane_->predicted_x_, next_vehicle_current_lane_->predicted_y_);
+    time_gap_current_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+    time_gap_predicted_current_lane_front_ = calculateTimeGap(ego.predicted_v_,
+                                                              ego.predicted_x_,
+                                                              ego.predicted_y_,
                                                               next_vehicle_current_lane_->predicted_x_,
                                                               next_vehicle_current_lane_->predicted_y_);
-
-    ttc_current_lane_front_ = calculateTimeToCollision(vehicle_controller_->ego_vehicle_.v_,
-                                                       vehicle_controller_->ego_vehicle_.x_,
-                                                       vehicle_controller_->ego_vehicle_.y_,
-                                                       next_vehicle_current_lane_->v_,
-                                                       next_vehicle_current_lane_->x_,
-                                                       next_vehicle_current_lane_->y_);
-
-    ttc_predicted_current_lane_front_ = calculateTimeToCollision(vehicle_controller_->ego_vehicle_.predicted_v_,
-                                                                 vehicle_controller_->ego_vehicle_.predicted_x_,
-                                                                 vehicle_controller_->ego_vehicle_.predicted_y_,
+    ttc_current_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->v_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+    ttc_predicted_current_lane_front_ = calculateTimeToCollision(ego.predicted_v_,
+                                                                 ego.predicted_x_,
+                                                                 ego.predicted_y_,
                                                                  next_vehicle_current_lane_->predicted_v_,
                                                                  next_vehicle_current_lane_->predicted_x_,
                                                                  next_vehicle_current_lane_->predicted_y_);
@@ -275,24 +256,9 @@ void LaneStateController::calculateSafetyMeasures() {
 
     if (front_vehicle_target_lane_) {
       // found vehicle driving ahead in target lane, check time gap
-      d_target_lane_front_ = calculateDistance(vehicle_controller_->ego_vehicle_.x_,
-                                               vehicle_controller_->ego_vehicle_.y_,
-                                               front_vehicle_target_lane_->x_,
-                                               front_vehicle_target_lane_->y_);
-
-      time_gap_target_lane_front_ = calculateTimeGap(vehicle_controller_->ego_vehicle_.v_,
-                                                     vehicle_controller_->ego_vehicle_.x_,
-                                                     vehicle_controller_->ego_vehicle_.y_,
-                                                     front_vehicle_target_lane_->x_,
-                                                     front_vehicle_target_lane_->y_);
-
-      ttc_target_lane_front_ = calculateTimeToCollision(vehicle_controller_->ego_vehicle_.v_,
-                                                        vehicle_controller_->ego_vehicle_.x_,
-                                                        vehicle_controller_->ego_vehicle_.y_,
-                                                        front_vehicle_target_lane_->v_,
-                                                        front_vehicle_target_lane_->x_,
-                                                        front_vehicle_target_lane_->y_);
-
+      d_target_lane_front_ = calculateDistance(ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
+      time_gap_target_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
+      ttc_target_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->v_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
     } else {
       d_target_lane_front_ = DEFAULT_DISTANCE;
       time_gap_target_lane_front_ = DEFAULT_TIME_GAP;
@@ -303,24 +269,9 @@ void LaneStateController::calculateSafetyMeasures() {
 
     if (rear_vehicle_target_lane_) {
       // found vehicle driving behind in target lane, check time gap
-      d_target_lane_rear_ = calculateDistance(vehicle_controller_->ego_vehicle_.x_,
-                                              vehicle_controller_->ego_vehicle_.y_,
-                                              rear_vehicle_target_lane_->x_,
-                                              rear_vehicle_target_lane_->y_);
-
-      time_gap_target_lane_rear_ = calculateTimeGap(vehicle_controller_->ego_vehicle_.v_,
-                                                    vehicle_controller_->ego_vehicle_.x_,
-                                                    vehicle_controller_->ego_vehicle_.y_,
-                                                    rear_vehicle_target_lane_->x_,
-                                                    rear_vehicle_target_lane_->y_);
-
-      ttc_target_lane_rear_ = calculateTimeToCollision(vehicle_controller_->ego_vehicle_.v_,
-                                                       vehicle_controller_->ego_vehicle_.x_,
-                                                       vehicle_controller_->ego_vehicle_.y_,
-                                                       rear_vehicle_target_lane_->v_,
-                                                       rear_vehicle_target_lane_->x_,
-                                                       rear_vehicle_target_lane_->y_);
-
+      d_target_lane_rear_ = calculateDistance(ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
+      time_gap_target_lane_rear_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
+      ttc_target_lane_rear_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->v_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
     } else {
       d_target_lane_rear_ = DEFAULT_DISTANCE;
       time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
