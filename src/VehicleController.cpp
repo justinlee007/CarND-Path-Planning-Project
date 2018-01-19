@@ -10,7 +10,6 @@ VehicleController::~VehicleController() = default;
 void VehicleController::update(double prediction_time) {
   removeOutdatedVehicles();
   average_lane_velocities_ = getAverageVelocityForAllLanes();
-  lane_occupancy_ = getLaneOccupancyForAllLanes();
   generateVehiclePredictions(prediction_time);
 }
 
@@ -80,19 +79,6 @@ void VehicleController::removeAllVehicles() {
   }
 
   vehicle_id_map_.clear();
-}
-
-vector<Vehicle *> VehicleController::getAllVehiclesForLane(int lane) {
-  vector<Vehicle *> vehicles;
-
-  for (auto &obj: vehicle_id_map_) {
-    if ((obj.second->d_ < (2 + LANE_WIDTH * lane + (LANE_WIDTH / 2.0))) && (obj.second->d_ > (2 + LANE_WIDTH * lane - (LANE_WIDTH / 2.0)))) {
-      // vehicle found in given lane
-      vehicles.push_back(obj.second);
-    }
-  }
-
-  return vehicles;
 }
 
 Vehicle *VehicleController::getNextVehicleDrivingAhead(int lane) {
@@ -204,22 +190,4 @@ Eigen::VectorXd VehicleController::getAverageVelocityForAllLanes() {
       (number_vehicles[2] == 0 ? speed_limits_[2] : min(speed_limits_[2], sum_velocities[2] / number_vehicles[2]));
 
   return average_lane_velocities;
-}
-
-Eigen::VectorXi VehicleController::getLaneOccupancyForAllLanes() {
-  Eigen::VectorXi lane_occupancy(3);
-  lane_occupancy.setZero();
-
-  for (int i = 0; i < number_lanes_; ++i) {
-    vector<Vehicle *> vehicles = getAllVehiclesForLane(i);
-
-    for (auto &obj: vehicles) {
-      double delta_s = obj->s_ - ego_vehicle_.s_;
-
-      if (delta_s > 0.0 && delta_s < MAX_DISTANCE_LANE_OCCUPANCY) {
-        lane_occupancy[i] += 1;
-      }
-    }
-  }
-  return lane_occupancy;
 }

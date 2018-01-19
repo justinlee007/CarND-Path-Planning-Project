@@ -21,7 +21,6 @@ class VehicleController {
   vector<double> speed_limits_; // speed limits per lane [0=left, 1=center, 2=right] [m/s]
   int number_lanes_; // number of lanes
   Eigen::VectorXd average_lane_velocities_; // average velocity per lane [m/s]
-  Eigen::VectorXi lane_occupancy_; // number of vehicles driving ahead per lane
 
   VehicleController();
 
@@ -94,14 +93,6 @@ class VehicleController {
   void removeAllVehicles();
 
   /**
-   * Gets all vehicles driving in requested lane.
-   *
-   * @param lane id [0=left, 1=center, 2=right]
-   * @return a vector of vehicles
-   */
-  vector<Vehicle *> getAllVehiclesForLane(int lane);
-
-  /**
    * Finds the next vehicle driving ahead in given lane.
    *
    * @param lane id [0=left, 1=center, 2=right]
@@ -147,13 +138,6 @@ class VehicleController {
    * If a lane is free, the speed limit is returned.  For the ego lane only the next vehicle driving ahead is considered.
    */
   Eigen::VectorXd getAverageVelocityForAllLanes();
-
-  /**
-   * Determines lane occupancy ahead.
-   *
-   * @return the number of vehicles driving ahead per lane [0=left, 1=center, 2=right]
-   */
-  Eigen::VectorXi getLaneOccupancyForAllLanes();
 };
 
 #endif //VEHICLECONTROLLER_H

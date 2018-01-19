@@ -175,7 +175,6 @@ LaneState LaneStateController::executeKeepLane() {
 }
 
 LaneState LaneStateController::executePrepareLaneChangeLeft() {
-  updateTelemetry();
 
   // set target velocity
   target_velocity_ = (next_vehicle_current_lane_) ? next_vehicle_current_lane_->v_ : vehicle_controller_->getSpeedLimitForCurrentLane();
@@ -185,7 +184,6 @@ LaneState LaneStateController::executePrepareLaneChangeLeft() {
 }
 
 LaneState LaneStateController::executeLaneChangeLeft() {
-  updateTelemetry();
 
   // set target velocity
   if (front_vehicle_target_lane_ && (current_lane_ != target_lane_)) {
@@ -210,7 +208,6 @@ LaneState LaneStateController::executeLaneChangeLeft() {
 }
 
 LaneState LaneStateController::executePrepareLaneChangeRight() {
-  updateTelemetry();
 
   // set target velocity
   target_velocity_ = (next_vehicle_current_lane_) ? next_vehicle_current_lane_->v_ : vehicle_controller_->getSpeedLimitForCurrentLane();
@@ -220,7 +217,6 @@ LaneState LaneStateController::executePrepareLaneChangeRight() {
 }
 
 LaneState LaneStateController::executeLaneChangeRight() {
-  updateTelemetry();
 
   // set target velocity
   if (front_vehicle_target_lane_ && (current_lane_ != target_lane_)) {
