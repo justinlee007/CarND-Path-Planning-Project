@@ -37,15 +37,12 @@ class LaneStateController {
   double d_current_lane_front_; // distance to vehicle ahead [m]
   double d_target_lane_front_; // distance to vehicle ahead in target lane [m]
   double d_target_lane_rear_; // distance to vehicle behind in target lane [m]
-  double d_predicted_current_lane_front_; // predicted distance to vehicle ahead [m]
   double time_gap_current_lane_front_; // time gap to vehicle ahead [s]
   double time_gap_target_lane_front_; // time gap to vehicle ahead in target lane [s]
   double time_gap_target_lane_rear_; // time gap to vehicle behind in target lane [s]
-  double time_gap_predicted_current_lane_front_; // predicted time gap to vehicle ahead [s]
   double ttc_current_lane_front_; // time-to-collision to vehicle ahead [s]
   double ttc_target_lane_front_; // time-to-collision to vehicle ahead in target lane [s]
   double ttc_target_lane_rear_; // time-to-collision to vehicle behind in target lane [s]
-  double ttc_predicted_current_lane_front_; // predicted time-to-collision to vehicle ahead [s]
 
   /**
    * Initializes the first state.
@@ -122,14 +119,14 @@ class LaneStateController {
   /**
    * Calculates the safety time gaps, TTC, and distances for the current and target lane.
    */
-  void calculateSafetyMeasures();
+  void updateTelemetry();
 
   /**
-   * Checks whether the target lane is safe to drive or not.
+   * Checks whether the target lane has clearance to drive or not.
    *
-   * @return true if the lane change is safe
+   * @return true if the lane change is clear
    */
-  bool isTargetLaneSafe();
+  bool isTargetLaneClear();
 
   /********** FINITE STATE MACHINE **********/
 
@@ -138,35 +135,35 @@ class LaneStateController {
    *
    * @return the next lane state.
    */
-  LaneState stateKeepLane();
+  LaneState executeKeepLane();
 
   /**
    * Vehicle prepares for left lane change (e.g. adjusting speed, waiting for a safe gap,...).
    *
    * @return the next lane state
    */
-  LaneState statePrepareLaneChangeLeft();
+  LaneState executePrepareLaneChangeLeft();
 
   /**
    * Vehicle performs a left lane change.
    *
    * @return the next lane state
    */
-  LaneState stateLaneChangeLeft();
+  LaneState executeLaneChangeLeft();
 
   /**
    * Vehicle prepares for right lane change (e.g. adjusting speed, waiting for a safe gap,...).
    *
    * @return the next lane state
    */
-  LaneState statePrepareLaneChangeRight();
+  LaneState executePrepareLaneChangeRight();
 
   /**
    * Vehicle performs a right lane change.
    *
    * @return the next lane state
    */
-  LaneState stateLaneChangeRight();
+  LaneState executeLaneChangeRight();
 };
 
 #endif //LANESTATECONTROLLER_H

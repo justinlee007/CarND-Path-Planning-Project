@@ -140,7 +140,7 @@ class VehicleController {
    *
    * @param prediction_time Number of seconds to predict into the future
    */
-  void generateVehicleModelPredictions(double prediction_time);
+  void generateVehiclePredictions(double prediction_time);
 
   /**
    * Determines average velocity for all lanes based on vehicles driving ahead.

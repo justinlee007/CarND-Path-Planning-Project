@@ -11,7 +11,7 @@ void VehicleController::update(double prediction_time) {
   removeOutdatedVehicles();
   average_lane_velocities_ = getAverageVelocityForAllLanes();
   lane_occupancy_ = getLaneOccupancyForAllLanes();
-  generateVehicleModelPredictions(prediction_time);
+  generateVehiclePredictions(prediction_time);
 }
 
 void VehicleController::setEgoVehicle(double x, double y, double s, double d, double yaw, double velocity) {
@@ -165,7 +165,7 @@ int VehicleController::getDrivingLaneForVehicle(const Vehicle *vehicle) {
   return -1;
 }
 
-void VehicleController::generateVehicleModelPredictions(double prediction_time) {
+void VehicleController::generateVehiclePredictions(double prediction_time) {
   ego_vehicle_.generatePredictions(prediction_time);
 
   for (auto &obj: vehicle_id_map_) {

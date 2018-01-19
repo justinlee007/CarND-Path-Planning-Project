@@ -13,40 +13,37 @@ LaneStateController::LaneStateController(VehicleController *controller, double r
   next_vehicle_current_lane_ = nullptr;
   front_vehicle_target_lane_ = nullptr;
   rear_vehicle_target_lane_ = nullptr;
-  d_predicted_current_lane_front_ = DEFAULT_DISTANCE;
   time_gap_current_lane_front_ = DEFAULT_TIME_GAP;
   time_gap_target_lane_front_ = DEFAULT_TIME_GAP;
   time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
-  time_gap_predicted_current_lane_front_ = DEFAULT_TIME_GAP;
   ttc_current_lane_front_ = DEFAULT_TIME_TO_COLLISION;
   ttc_target_lane_front_ = DEFAULT_TIME_TO_COLLISION;
   ttc_target_lane_rear_ = DEFAULT_TIME_TO_COLLISION;
-  ttc_predicted_current_lane_front_ = DEFAULT_TIME_TO_COLLISION;
 }
 
 LaneState LaneStateController::update() {
   current_lane_ = vehicle_controller_->ego_vehicle_.lane_;
   fastest_lane_ = vehicle_controller_->getReachableFastestLane(FASTEST_LANE_FACTOR);
 
-  calculateSafetyMeasures();
+  updateTelemetry();
 
   LaneState new_state = LaneState::INITIALIZATION;
   switch (current_state_) {
-    case LaneState::KEEP_LANE:new_state = stateKeepLane();
+    case LaneState::KEEP_LANE:new_state = executeKeepLane();
       break;
-    case LaneState::PREPARE_LANE_CHANGE_LEFT:new_state = statePrepareLaneChangeLeft();
+    case LaneState::PREPARE_LANE_CHANGE_LEFT:new_state = executePrepareLaneChangeLeft();
       break;
-    case LaneState::LANE_CHANGE_LEFT:new_state = stateLaneChangeLeft();
+    case LaneState::LANE_CHANGE_LEFT:new_state = executeLaneChangeLeft();
       break;
-    case LaneState::PREPARE_LANE_CHANGE_RIGHT:new_state = statePrepareLaneChangeRight();
+    case LaneState::PREPARE_LANE_CHANGE_RIGHT:new_state = executePrepareLaneChangeRight();
       break;
-    case LaneState::LANE_CHANGE_RIGHT:new_state = stateLaneChangeRight();
+    case LaneState::LANE_CHANGE_RIGHT:new_state = executeLaneChangeRight();
       break;
-    default:cout << "Error: Invalid behavior state." << endl;
+    default:printf("Error: Invalid behavior state.\n");
       break;
   }
   if (new_state != current_state_) {
-    printf("Lane state change: current=%s, new=%s", getStateAsString(current_state_).c_str(), getStateAsString(new_state).c_str());
+    printf("Lane state change: current=%s, new=%s\n", getStateAsString(current_state_).c_str(), getStateAsString(new_state).c_str());
     current_state_ = new_state;
   }
 
@@ -64,7 +61,89 @@ string LaneStateController::getStateAsString(LaneState state) const {
   }
 }
 
-LaneState LaneStateController::stateKeepLane() {
+double LaneStateController::calculateDistance(double ego_x, double ego_y, double target_x, double target_y) {
+  double delta_x = target_x - ego_x;
+  double delta_y = target_y - ego_y;
+
+  return sqrt(pow(delta_x, 2) + pow(delta_y, 2));
+}
+
+double LaneStateController::calculateTimeGap(double ego_v, double ego_x, double ego_y, double target_x, double target_y) {
+  double dist = calculateDistance(ego_x, ego_y, target_x, target_y);
+
+  return dist / ego_v;
+}
+
+double LaneStateController::calculateTimeToCollision(double ego_v, double ego_x, double ego_y, double target_v, double target_x, double target_y) {
+  double dist = calculateDistance(ego_x, ego_y, target_x, target_y);
+  double delta_v = ego_v - target_v;
+
+  return abs(dist / delta_v);
+}
+
+void LaneStateController::updateTelemetry() {
+
+  // Calculate distances, time gap and ttc for current lane
+  next_vehicle_current_lane_ = vehicle_controller_->getNextVehicleDrivingAhead(current_lane_);
+  Vehicle ego = vehicle_controller_->ego_vehicle_;
+
+  // If a vehicle is ahead in the current lane, update current lane distances, time gap and ttc
+  if (next_vehicle_current_lane_) {
+    d_current_lane_front_ = calculateDistance(ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+    time_gap_current_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+    ttc_current_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->v_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
+  } else {
+    d_current_lane_front_ = DEFAULT_DISTANCE;
+    time_gap_current_lane_front_ = DEFAULT_TIME_GAP;
+    ttc_current_lane_front_ = DEFAULT_TIME_TO_COLLISION;
+  }
+
+  // Calculate distances, time gap and ttc for target lane
+  if (target_lane_ == current_lane_) {
+    d_target_lane_front_ = d_current_lane_front_;
+    d_target_lane_rear_ = DEFAULT_DISTANCE;
+    time_gap_target_lane_front_ = time_gap_current_lane_front_;
+    time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
+    ttc_target_lane_front_ = ttc_current_lane_front_;
+    ttc_target_lane_rear_ = DEFAULT_TIME_TO_COLLISION;
+  } else {
+    front_vehicle_target_lane_ = vehicle_controller_->getNextVehicleDrivingAhead(target_lane_);
+
+    // If a vehicle is ahead in the target lane, update front target lane distances, time gap and ttc
+    if (front_vehicle_target_lane_) {
+      d_target_lane_front_ = calculateDistance(ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
+      time_gap_target_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
+      ttc_target_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->v_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
+    } else {
+      d_target_lane_front_ = DEFAULT_DISTANCE;
+      time_gap_target_lane_front_ = DEFAULT_TIME_GAP;
+      ttc_target_lane_front_ = DEFAULT_TIME_TO_COLLISION;
+    }
+
+    rear_vehicle_target_lane_ = vehicle_controller_->getNextVehicleDrivingBehind(target_lane_);
+
+    // If a vehicle is behind in target lane, update rear target lane distances, time gap and ttc
+    if (rear_vehicle_target_lane_) {
+      d_target_lane_rear_ = calculateDistance(ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
+      time_gap_target_lane_rear_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
+      ttc_target_lane_rear_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->v_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
+    } else {
+      d_target_lane_rear_ = DEFAULT_DISTANCE;
+      time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
+      ttc_target_lane_rear_ = DEFAULT_TIME_TO_COLLISION;
+    }
+  }
+}
+
+bool LaneStateController::isTargetLaneClear() {
+  return (time_gap_target_lane_rear_ >= MIN_TIME_GAP_LANE_CHANGE) &&
+      (d_target_lane_front_ >= MIN_DISTANCE_FRONT_LANE_CHANGE) &&
+      (d_target_lane_rear_ >= MIN_DISTANCE_REAR_LANE_CHANGE) &&
+      (ttc_target_lane_front_ >= MIN_TTC_FRONT_LANE_CHANGE) &&
+      (ttc_target_lane_rear_ >= MIN_TTC_REAR_LANE_CHANGE);
+}
+
+LaneState LaneStateController::executeKeepLane() {
 
   double speed_limit_current_lane = vehicle_controller_->getSpeedLimitForCurrentLane();
   double host_velocity = vehicle_controller_->ego_vehicle_.v_;
@@ -95,35 +174,18 @@ LaneState LaneStateController::stateKeepLane() {
   }
 }
 
-bool LaneStateController::isTargetLaneSafe() {
-  return (time_gap_target_lane_rear_ >= MIN_TIME_GAP_LANE_CHANGE) &&
-      (d_target_lane_front_ >= MIN_DISTANCE_FRONT_LANE_CHANGE) &&
-      (d_target_lane_rear_ >= MIN_DISTANCE_REAR_LANE_CHANGE) &&
-      (ttc_target_lane_front_ >= MIN_TTC_FRONT_LANE_CHANGE) &&
-      (ttc_target_lane_rear_ >= MIN_TTC_REAR_LANE_CHANGE);
-}
-
-LaneState LaneStateController::statePrepareLaneChangeLeft() {
-  calculateSafetyMeasures();
+LaneState LaneStateController::executePrepareLaneChangeLeft() {
+  updateTelemetry();
 
   // set target velocity
-  if (next_vehicle_current_lane_) {
-    target_velocity_ = next_vehicle_current_lane_->v_;
-  } else {
-    target_velocity_ = vehicle_controller_->getSpeedLimitForCurrentLane();
-  }
+  target_velocity_ = (next_vehicle_current_lane_) ? next_vehicle_current_lane_->v_ : vehicle_controller_->getSpeedLimitForCurrentLane();
 
-  // determine next lane state
-  if (isTargetLaneSafe()) {
-    return LaneState::LANE_CHANGE_LEFT;
-  } else {
-    // still unsafe to change to the left lane, wait
-    return LaneState::PREPARE_LANE_CHANGE_LEFT;
-  }
+  // change lanes if it's clear
+  return isTargetLaneClear() ? LaneState::LANE_CHANGE_LEFT : LaneState::PREPARE_LANE_CHANGE_LEFT;
 }
 
-LaneState LaneStateController::stateLaneChangeLeft() {
-  calculateSafetyMeasures();
+LaneState LaneStateController::executeLaneChangeLeft() {
+  updateTelemetry();
 
   // set target velocity
   if (front_vehicle_target_lane_ && (current_lane_ != target_lane_)) {
@@ -147,27 +209,18 @@ LaneState LaneStateController::stateLaneChangeLeft() {
   }
 }
 
-LaneState LaneStateController::statePrepareLaneChangeRight() {
-  calculateSafetyMeasures();
+LaneState LaneStateController::executePrepareLaneChangeRight() {
+  updateTelemetry();
 
   // set target velocity
-  if (next_vehicle_current_lane_) {
-    target_velocity_ = next_vehicle_current_lane_->v_;
-  } else {
-    target_velocity_ = vehicle_controller_->getSpeedLimitForCurrentLane();
-  }
+  target_velocity_ = (next_vehicle_current_lane_) ? next_vehicle_current_lane_->v_ : vehicle_controller_->getSpeedLimitForCurrentLane();
 
-  // determine next state
-  if (isTargetLaneSafe()) {
-    return LaneState::LANE_CHANGE_RIGHT;
-  } else {
-    // still unsafe to change to the right lane, wait
-    return LaneState::PREPARE_LANE_CHANGE_RIGHT;
-  }
+  // change lanes if it's clear
+  return isTargetLaneClear() ? LaneState::LANE_CHANGE_RIGHT : LaneState::PREPARE_LANE_CHANGE_RIGHT;
 }
 
-LaneState LaneStateController::stateLaneChangeRight() {
-  calculateSafetyMeasures();
+LaneState LaneStateController::executeLaneChangeRight() {
+  updateTelemetry();
 
   // set target velocity
   if (front_vehicle_target_lane_ && (current_lane_ != target_lane_)) {
@@ -188,94 +241,5 @@ LaneState LaneStateController::stateLaneChangeRight() {
     return LaneState::KEEP_LANE;
   } else {
     return LaneState::LANE_CHANGE_RIGHT;
-  }
-}
-
-double LaneStateController::calculateDistance(double ego_x, double ego_y, double target_x, double target_y) {
-  double delta_x = target_x - ego_x;
-  double delta_y = target_y - ego_y;
-
-  return sqrt(pow(delta_x, 2) + pow(delta_y, 2));
-}
-
-double LaneStateController::calculateTimeGap(double ego_v, double ego_x, double ego_y, double target_x, double target_y) {
-  double dist = calculateDistance(ego_x, ego_y, target_x, target_y);
-
-  return dist / ego_v;
-}
-
-double LaneStateController::calculateTimeToCollision(double ego_v, double ego_x, double ego_y, double target_v, double target_x, double target_y) {
-  double dist = calculateDistance(ego_x, ego_y, target_x, target_y);
-  double delta_v = ego_v - target_v;
-
-  return abs(dist / delta_v);
-}
-
-void LaneStateController::calculateSafetyMeasures() {
-
-  // Calculate time gap for current lane
-  next_vehicle_current_lane_ = vehicle_controller_->getNextVehicleDrivingAhead(current_lane_);
-  Vehicle ego = vehicle_controller_->ego_vehicle_;
-
-  if (next_vehicle_current_lane_) {
-    // found vehicle driving ahead, check time_gap
-    d_current_lane_front_ = calculateDistance(ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
-    d_predicted_current_lane_front_ = calculateDistance(ego.predicted_x_, ego.predicted_y_, next_vehicle_current_lane_->predicted_x_, next_vehicle_current_lane_->predicted_y_);
-    time_gap_current_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
-    time_gap_predicted_current_lane_front_ = calculateTimeGap(ego.predicted_v_,
-                                                              ego.predicted_x_,
-                                                              ego.predicted_y_,
-                                                              next_vehicle_current_lane_->predicted_x_,
-                                                              next_vehicle_current_lane_->predicted_y_);
-    ttc_current_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, next_vehicle_current_lane_->v_, next_vehicle_current_lane_->x_, next_vehicle_current_lane_->y_);
-    ttc_predicted_current_lane_front_ = calculateTimeToCollision(ego.predicted_v_,
-                                                                 ego.predicted_x_,
-                                                                 ego.predicted_y_,
-                                                                 next_vehicle_current_lane_->predicted_v_,
-                                                                 next_vehicle_current_lane_->predicted_x_,
-                                                                 next_vehicle_current_lane_->predicted_y_);
-  } else {
-    d_current_lane_front_ = DEFAULT_DISTANCE;
-    d_predicted_current_lane_front_ = DEFAULT_DISTANCE;
-    time_gap_current_lane_front_ = DEFAULT_TIME_GAP;
-    time_gap_predicted_current_lane_front_ = DEFAULT_TIME_GAP;
-    ttc_current_lane_front_ = DEFAULT_TIME_TO_COLLISION;
-    ttc_predicted_current_lane_front_ = DEFAULT_TIME_TO_COLLISION;
-  }
-
-  // Calculate time gaps for target lane
-  if (target_lane_ == current_lane_) {
-    d_target_lane_front_ = d_current_lane_front_;
-    d_target_lane_rear_ = DEFAULT_DISTANCE;
-    time_gap_target_lane_front_ = time_gap_current_lane_front_;
-    time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
-    ttc_target_lane_front_ = ttc_current_lane_front_;
-    ttc_target_lane_rear_ = DEFAULT_TIME_TO_COLLISION;
-  } else {
-    front_vehicle_target_lane_ = vehicle_controller_->getNextVehicleDrivingAhead(target_lane_);
-
-    if (front_vehicle_target_lane_) {
-      // found vehicle driving ahead in target lane, check time gap
-      d_target_lane_front_ = calculateDistance(ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
-      time_gap_target_lane_front_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
-      ttc_target_lane_front_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, front_vehicle_target_lane_->v_, front_vehicle_target_lane_->x_, front_vehicle_target_lane_->y_);
-    } else {
-      d_target_lane_front_ = DEFAULT_DISTANCE;
-      time_gap_target_lane_front_ = DEFAULT_TIME_GAP;
-      ttc_target_lane_front_ = DEFAULT_TIME_TO_COLLISION;
-    }
-
-    rear_vehicle_target_lane_ = vehicle_controller_->getNextVehicleDrivingBehind(target_lane_);
-
-    if (rear_vehicle_target_lane_) {
-      // found vehicle driving behind in target lane, check time gap
-      d_target_lane_rear_ = calculateDistance(ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
-      time_gap_target_lane_rear_ = calculateTimeGap(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
-      ttc_target_lane_rear_ = calculateTimeToCollision(ego.v_, ego.x_, ego.y_, rear_vehicle_target_lane_->v_, rear_vehicle_target_lane_->x_, rear_vehicle_target_lane_->y_);
-    } else {
-      d_target_lane_rear_ = DEFAULT_DISTANCE;
-      time_gap_target_lane_rear_ = DEFAULT_TIME_GAP;
-      ttc_target_lane_rear_ = DEFAULT_TIME_TO_COLLISION;
-    }
   }
 }
