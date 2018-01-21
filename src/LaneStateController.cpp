@@ -43,7 +43,7 @@ LaneState LaneStateController::update() {
       break;
   }
   if (new_state != current_state_) {
-    printf("Lane state change: current=%s, new=%s\n", getStateAsString(current_state_).c_str(), getStateAsString(new_state).c_str());
+    printf("Lane state change: new=%s, previous=%s\n", getStateAsString(new_state).c_str(), getStateAsString(current_state_).c_str());
     current_state_ = new_state;
   }
 
@@ -146,7 +146,7 @@ bool LaneStateController::isTargetLaneClear() {
 LaneState LaneStateController::executeKeepLane() {
 
   double speed_limit_current_lane = vehicle_controller_->getSpeedLimitForCurrentLane();
-  double host_velocity = vehicle_controller_->ego_vehicle_.v_;
+  double ego_velocity = vehicle_controller_->ego_vehicle_.v_;
 
   // set target velocity
   if (next_vehicle_current_lane_ && (time_gap_current_lane_front_ <= LOWER_TIME_GAP)) {
@@ -157,12 +157,12 @@ LaneState LaneStateController::executeKeepLane() {
 
   // determine next behavior state
   // close vehicle ahead, prepare lane change to fastest lane
-  if ((host_velocity < speed_limit_current_lane) &&
+  if ((ego_velocity < speed_limit_current_lane) &&
       (time_gap_current_lane_front_ <= MIN_TIME_GAP_INIT_LANE_CHANGE) &&
       (fastest_lane_ < current_lane_)) {
     target_lane_ = fastest_lane_;
     return LaneState::PREPARE_LANE_CHANGE_LEFT;
-  } else if ((host_velocity < speed_limit_current_lane) &&
+  } else if ((ego_velocity < speed_limit_current_lane) &&
       (time_gap_current_lane_front_ <= MIN_TIME_GAP_INIT_LANE_CHANGE) &&
       (fastest_lane_ > current_lane_)) {
     target_lane_ = fastest_lane_;
