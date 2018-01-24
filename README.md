@@ -66,14 +66,14 @@ The `LaneStateController`class suggests the next feasible, safe, legal and most 
 #### LaneState FSM (Finite State Machine)
 The next maneuver is defined by the following lane states.  Depending on the actual state, the `LaneStateController` determines the target velocity and the target lane.  With these inputs (state, target velocity and target lane) the `PathPlanner` plans an optimal and jerk free trajectory.
 
-| State                      | Description                                                                                                               | Next State                                                        |
-|:---------------------------|:--------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------|
-| `INITIALIZATION`           | Initialization phase of the behavior planner.                                                                             | -KEEP_LANE                                                          |
-| `KEEP_LANE`                | The ego vehicle keeps the lane as long as the target velocity could be keep and a faster lane is not available.           | -KEEP_LANE<br/>-PREPARE_LANE_CHANGE_LEFT<br/>-PREPARE_LANE_CHANGE_RIGHT |
-| `PREPARE_LANE_CHANGE_LEFT` | The ego vehicle prepares for a left lane change (e.g. adjusting velocity to target lane, waiting for a safe gap, etc.).   | -PREPARE_LANE_CHANGE_LEFT<br/>-LANE_CHANGE_LEFT                       |
-| `LANE_CHANGE_LEFT`         | The ego vehicle starts to change to the left adjacent lane.                                                               | -LANE_CHANGE_LEFT<br/>-KEEP_LANE                                      |
-| `PREPARE_LANE_CHANGE_RIGHT`| The ego vehicle prepares for a right lane change (e.g. adjusting velocity to target lane, waiting for a safe gap, etc.).  | -PREPARE_LANE_CHANGE_RIGHT<br/>-LANE_CHANGE_RIGHT                     |  
-| `LANE_CHANGE_RIGHT`        | The ego vehicle starts to change to the right adjacent lane.                                                              | -LANE_CHANGE_RIGHT<br/>-KEEP_LANE                                     |
+| State                      | Description                                                                                                               | Next State                                                           |
+|:---------------------------|:--------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------|
+| `INITIALIZATION`           | Initialization phase of the behavior planner.                                                                             | KEEP_LANE                                                            |
+| `KEEP_LANE`                | The ego vehicle keeps the lane as long as the target velocity could be keep and a faster lane is not available.           | KEEP_LANE<br/>PREPARE_LANE_CHANGE_LEFT<br/>PREPARE_LANE_CHANGE_RIGHT |
+| `PREPARE_LANE_CHANGE_LEFT` | The ego vehicle prepares for a left lane change (e.g. adjusting velocity to target lane, waiting for a safe gap, etc.).   | PREPARE_LANE_CHANGE_LEFT<br/>LANE_CHANGE_LEFT                        |
+| `LANE_CHANGE_LEFT`         | The ego vehicle starts to change to the left adjacent lane.                                                               | LANE_CHANGE_LEFT<br/>KEEP_LANE                                       |
+| `PREPARE_LANE_CHANGE_RIGHT`| The ego vehicle prepares for a right lane change (e.g. adjusting velocity to target lane, waiting for a safe gap, etc.).  | PREPARE_LANE_CHANGE_RIGHT<br/>LANE_CHANGE_RIGHT                      |  
+| `LANE_CHANGE_RIGHT`        | The ego vehicle starts to change to the right adjacent lane.                                                              | LANE_CHANGE_RIGHT<br/>KEEP_LANE                                      |
 
 ![](state-diagram.png)
 
