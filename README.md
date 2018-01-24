@@ -92,4 +92,13 @@ the path has processed since last time.
 
 A really helpful resource for doing this project and creating smooth trajectories was using http://kluge.in-chemnitz.de/opensource/spline/, the spline function is in a single hearder file is really easy to use.
 
+# Results
+After some tinkering, my implementation runs well enough to get around the track and fulfill the rubric goals.
+
+[Link to project video](https://youtu.be/vvReZ0varZc)
+
+# Lessons Learned
+It would be interesting to try a **cost function** for determining state transitions and not just heuristics from the vehicle controller.
+
+
 
