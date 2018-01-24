@@ -10,7 +10,6 @@
 
 static constexpr double LANE_WIDTH = 4.0; // default lane width
 static constexpr double MAX_DISTANCE_FOR_AVE_VELOCITY = 100; // The average velocity is calculated for vehicles in range of x m ahead
-static constexpr double MAX_DISTANCE_LANE_OCCUPANCY = 100; // The average velocity is calculated for vehicles in range of x m ahead
 
 /**
  * Holds a list of all detected vehicles and provides methods to find the nearest vehicle in the ego or adjacent lane.

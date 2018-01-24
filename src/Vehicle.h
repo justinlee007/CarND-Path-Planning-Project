@@ -31,10 +31,6 @@ class Vehicle {
 
   int lane_; // lane id [-1=unknown, 0-left, 1-center, 2-right]
 
-  double predicted_x_; // predicted x positions [m]
-  double predicted_y_; // predicted y positions [m]
-  double predicted_v_; // predicted velocity [m/s]
-
   vector<double> predicted_trajectory_x_; // predicted trajectory, x positions [m]
   vector<double> predicted_trajectory_y_; // predicted trajectory, y positions [m]
   vector<double> predicted_trajectory_vx_; // predicted trajectory, velocity in x direction [m/s]

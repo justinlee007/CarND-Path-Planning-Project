@@ -87,10 +87,4 @@ void Vehicle::generatePredictions(double prediction_time) {
     predicted_trajectory_vy_.push_back(vy_ + ay_ * prediction_time);
     predicted_trajectory_v_.push_back(v_ + a_ * prediction_time);
   }
-
-  // vehicle state at prediction time
-  double dt = prediction_time;
-  predicted_x_ = x_ + (vx_ * dt + 0.5 * ax_ * pow(dt, 2));
-  predicted_y_ = y_ + (vy_ * dt + 0.5 * ay_ * pow(dt, 2));
-  predicted_v_ = v_ + a_ * prediction_time;
 }
